@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPATIAL, show me YOUrs</title>
+    <style>
+        @font-face {
+            font-family: 'Neue Montreal Light';
+            src: local('Neue Montreal Light');
+        }
+        body {
+            text-align: center;
+            font-family: 'Neue Montreal Light', sans-serif;
+            background-color: #004aad;
+            color: white;
+        }
+        #container {
+            position: relative;
+            display: inline-block;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        button {
+            margin: 30px;
+            padding: 10px;
+            cursor: pointer;
+            font-family: 'Neue Montreal Light', sans-serif;
+        }
+        video {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid white;
+        }
+        .box {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+        }
+        .box .inner {
+            position: relative;
+            width: 400px;
+            height: 200px;
+            line-height: 200px;
+            font-size: 2em;
+            font-family: 'Neue Montreal Light', sans-serif;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .box .inner:first-child {
+            background-color: indianred;
+            color: darkred;
+            transform-origin: right;
+            transform: perspective(100px) rotateY(-15deg);
+        }
+        .box .inner:last-child {
+            background-color: lightcoral;
+            color: antiquewhite;
+            transform-origin: left;
+            transform: perspective(100px) rotateY(15deg);
+        }
+        .box .inner span {
+            position: absolute;
+            animation: marquee 5s linear infinite;
+        }
+        .box .inner:first-child span {
+            animation-delay: 2.5s;
+            left: -100%;
+        }
+        @keyframes marquee {
+            from {
+                left: 100%;
+            }
+            to {
+                left: -100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>SPATIAL, show me YOUrs</h1>
+    <div>
+        <button onclick="prevLetter()">Previous</button>
+        <button onclick="nextLetter()">Next</button>
+    </div>
+    <div id="container">
+        <img id="letterImage" src="letters/A.png" width="400">
+        <canvas id="drawingCanvas" width="400" height="400"></canvas>
+    </div>
+    <div>
+        <button onclick="clearCanvas()">Clear</button>
+        <button onclick="downloadDrawing()">Download</button>
+    </div>
+    <video id="cameraFeed" width="400" height="300" autoplay></video>
+    
+    <div class="box">
+        <div class="inner">
+            <span>DOWNLOAD TO TRY ON YOUR PROJECT</span>
+        </div>
+        <div class="inner">
+            <span>Hello World</span>
+        </div>
+    </div>
+    
+    <script>
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        let currentIndex = 0;
+        let canvas = document.getElementById("drawingCanvas");
+        let ctx = canvas.getContext("2d");
+        let drawing = false;
+        let video = document.getElementById("cameraFeed");
+        let streamActive = false;
+
+        function loadLetter() {
+            document.getElementById("letterImage").src = `letters/${letters[currentIndex]}.png`;
+            clearCanvas();
+        }
+
+        function prevLetter() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadLetter();
+            }
+        }
+
+        function nextLetter() {
+            if (currentIndex < letters.length - 1) {
+                currentIndex++;
+                loadLetter();
+            }
+        }
+
+        canvas.addEventListener("mousedown", () => drawing = true);
+        canvas.addEventListener("mouseup", () => {
+            drawing = false;
+            startleUser();
+        });
+        canvas.addEventListener("mousemove", draw);
+
+        function draw(event) {
+            if (!drawing) return;
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.arc(event.offsetX, event.offsetY, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function downloadDrawing() {
+            let link = document.createElement("a");
+            link.download = `${letters[currentIndex]}_drawing.png`;
+            let mergedCanvas = document.createElement("canvas");
+            mergedCanvas.width = canvas.width;
+            mergedCanvas.height = canvas.height;
+            let mergedCtx = mergedCanvas.getContext("2d");
+            let img = document.getElementById("letterImage");
+            
+            mergedCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            mergedCtx.drawImage(canvas, 0, 0);
+            link.href = mergedCanvas.toDataURL("image/png");
+            link.click();
+        }
+    </script>
+</body>
+</html>
